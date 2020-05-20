@@ -1,0 +1,20 @@
+Country,State,Building,Count
+India,Bangalore,Building1,1
+India,Bangalore,Building2,3
+India,Mumbai,Mumbai-Building-1,10
+India,Mumbai,Mumbai-Building-2,16
+United States,Chicago,Building 1,17
+United States,Atlanta,Building 1,18
+United States,Atlanta,Building 2,19
+United States,Atlanta,Building 3,20
+United States,Austin,Building 1,21
+United States,Austin,Building 2,22
+United States,Austin,Building 3,43
+United States,Bellevue,Building 1,254
+United States,Bellevue,Building 2,32
+United States,Bellevue,Building 3,34
+United States,Berwyn,Building 1,45
+United States,Berwyn,Building 2,23
+United States,Berwyn,Building 3,65
+United States,Chicago,Building 2,78
+United States,Chicago,Building 3,51
