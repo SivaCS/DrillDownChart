@@ -1,476 +1,452 @@
-
 <!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
 
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+.toolTip {
+	position: absolute;
+	display: none;
+	min-width: 80px;
+	height: auto;
+	background: none repeat scroll 0 0 #ffffff;
+	border: 1px solid #6F257F;
+	padding: 14px;
+	text-align: center;
+}
+</style>
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+
+
+
+<!-- 
+<input type="file" id="fileUpload" />
+<input type="button" id="upload" value="Upload" />
+<hr />
+ -->
 <div class="columnrow aem-GridColumn aem-GridColumn--default--12">
 	<div class="row">
-			<div class="col-md-6 order-md-1 none col-horizontal-alignment-left col-vertical-alignment-top col-mobile-horizontal-alignment-left" data-vertical-alignment="top" data-horizontal-alignment="left" data-mobile-horizontal-alignment="left">
+		<div class="col-md-6 order-md-1 none col-horizontal-alignment-left col-vertical-alignment-top col-mobile-horizontal-alignment-left" data-vertical-alignment="top" data-horizontal-alignment="left" data-mobile-horizontal-alignment="left">
+			<div class="loading">Loading...</div>
 			<div class="chart"></div>
 		</div>
 	</div>
 </div>
 
 
-</style>
+
 <body>
-<script src="https://d3js.org/d3.v4.min.js"></script>
 
-<script>
-var flare = 
-{
- "name": "flare",
- "children": [
-	{
-	 "name": "India",
-	 "children": [
-		{
-		 "name": "Mumbai",
-		 "children": [
-			{"name": "Building 1", "size": 65},
-			{"name": "Building 2", "size": 5},
-			{"name": "Building 3", "size": 34},
-			{"name": "Building 4", "size": 1}
-		 ]
-		},
-		{
-		 "name": "Gurgaon",
-		 "children": [
-		{"name": "Building 1", "size": 10},
-			{"name": "Building 2", "size": 5},
-			{"name": "Building 3", "size": 34},
-			{"name": "Building 4", "size": 1}
-		 ]
-		},
-		{
-		 "name": "Bangalore",
-		 "children": [
-		{"name": "Building 1", "size": 10},
-			{"name": "Building 2", "size": 5},
-			{"name": "Building 3", "size": 34},
-			{"name": "Building 4", "size": 1}
-		 ]
-		},
-		{
-		 "name": "Pune",
-		 "children": [
-		{"name": "Building 1", "size": 10},
-			{"name": "Building 2", "size": 5},
-			{"name": "Building 3", "size": 34},
-			{"name": "Building 4", "size": 1}
-		 ]
-		},
-		{
-		 "name": "Chennai",
-		 "children": [
-			{"name": "Building 1", "size": 10},
-			{"name": "Building 2", "size": 5},
-			{"name": "Building 3", "size": 34},
-			{"name": "Building 4", "size": 1}
-		 ]
-		},
-		{
-		 "name": "Hyderabad",
-		 "children": [
-			{"name": "Building 1", "size": 10},
-			{"name": "Building 2", "size": 5},
-			{"name": "Building 3", "size": 34},
-			{"name": "Building 4", "size": 1}
-		 ]
-		},
-		{
-		 "name": "Kolkata",
-		 "children": [
-			{"name": "Building 1", "size": 10},
-			{"name": "Building 2", "size": 5},
-			{"name": "Building 3", "size": 34},
-			{"name": "Building 4", "size": 1}
-		 ]
-		},
-		{
-		 "name": "Ahmedabad",
-		 "children": [
-			{"name": "Building 1", "size": 10},
-			{"name": "Building 2", "size": 5},
-			{"name": "Building 3", "size": 34},
-			{"name": "Building 4", "size": 1}
-		 ]
+<script type="text/javascript">
+$(function () {
+	var flare ={};
+	var rawJsonData = new Array();
+	var margin ;
+	var x;
+	var barHeight;
+	var color;
+	var duration;
+	var xAxis;
+	var svg;
+	var root;
+	var tooltip ;
+	$(document).ready(function () {
+		$.get("https://raw.githubusercontent.com/SivaCS/DrillDownChart/master/data/data.csv", function(data, status){	
+		var rowsArr = data.split("\n");
+		for (var i = 0; i < rowsArr.length; i++) {
+		var cells = rowsArr[i].trim().split(",");
+
+		if (cells.length ==5) {
+			var csvData = {};
+				if(cells[0]!="Country"){
+					csvData.Country = cells[0];
+					csvData.State = cells[1];
+					csvData.Building = cells[2];
+					csvData.Affected = cells[3];
+					csvData.Recovered = cells[4];
+					if(csvData.Country!=""&&csvData.State!=""&&csvData.Building!=""&&csvData.Affected!=""&&csvData.Recovered!=""){
+						rawJsonData.push(csvData);
+					}
+				}
+			}
 		}
-	 ]
-	},
-	{
-	 "name": "United States",
-	 "children": [
-		{
-		 "name": "Chicago",
-		 "children": [
-			{"name": "Building 1", "size": 345},
-			{"name": "Building 2", "size": 5},
-			{"name": "Building 3", "size": 34},
-			{"name": "Building 4", "size": 1}
-		 ]
-		},
-		{
-		 "name": "Atlanta",
-		 "children": [
-		{"name": "Building 1", "size": 10},
-			{"name": "Building 2", "size": 5},
-			{"name": "Building 3", "size": 34},
-			{"name": "Building 4", "size": 1}
-		 ]
-		},
-		{
-		 "name": "Austin",
-		 "children": [
-		{"name": "Building 1", "size": 10},
-			{"name": "Building 2", "size": 5},
-			{"name": "Building 3", "size": 34},
-			{"name": "Building 4", "size": 1}
-		 ]
-		},
-		{
-		 "name": "Bellevue",
-		 "children": [
-		{"name": "Building 1", "size": 10},
-			{"name": "Building 2", "size": 5},
-			{"name": "Building 3", "size": 34},
-			{"name": "Building 4", "size": 1}
-		 ]
-		},
-		{
-		 "name": "Berwyn",
-		 "children": [
-			{"name": "Building 1", "size": 10},
-			{"name": "Building 2", "size": 5},
-			{"name": "Building 3", "size": 34},
-			{"name": "Building 4", "size": 1}
-		 ]
-		},
-		{
-		 "name": "Boise",
-		 "children": [
-			{"name": "Building 1", "size": 10},
-			{"name": "Building 2", "size": 5},
-			{"name": "Building 3", "size": 34},
-			{"name": "Building 4", "size": 1}
-		 ]
-		},
-		{
-		 "name": "Boston",
-		 "children": [
-			{"name": "Building 1", "size": 10},
-			{"name": "Building 2", "size": 5},
-			{"name": "Building 3", "size": 34},
-			{"name": "Building 4", "size": 1}
-		 ]
+		formatJson(rawJsonData);
+		$(".loading").hide();
+		});
+	});
+	/*$("#upload").bind("click", function () {
+		var regex = /^([a-zA-Z0-9\s_\\.\-:])+(.csv|.txt)$/;
+		if (regex.test($("#fileUpload").val().toLowerCase())) {
+			if (typeof (FileReader) != "undefined") {
+				var reader = new FileReader();
+				reader.onload = function (e) {
+					
+					var rows = e.target.result.split("\r\n");
+					for (var i = 0; i < rows.length; i++) {
+						var cells = rows[i].trim().split(",");
+					
+						if (cells.length ==5) {
+							var csvData = {};
+							if(cells[0]!="Country"){
+							csvData.Country = cells[0];
+							csvData.State = cells[1];
+							csvData.Building = cells[2];
+							 csvData.Affected = cells[3];
+							 csvData.Recovered = cells[4];
+							 if(csvData.Country!=""&&csvData.State!=""&&csvData.Building!=""&&csvData.Affected!=""&&csvData.Recovered!=""){
+									rawJsonData.push(csvData);
+							}
+							}
+						}
+					}
+					//$("#dvCSV").html('');
+				   // $("#dvCSV").append(JSON.stringify(rawJsonData));
+				  
+					formatJson(rawJsonData);
+				}
+				reader.readAsText($("#fileUpload")[0].files[0]);
+			} else {
+				alert("This browser does not support HTML5.");
+			}
+		} else {
+			alert("Please upload a valid CSV file.");
 		}
-	 ]
-	},
-	{
-	 "name": "Australia",
-	 "children": [
-		{
-		 "name": "Adelaide",
-		 "children": [
-			{"name": "Building 1", "size": 10},
-			{"name": "Building 2", "size": 5},
-			{"name": "Building 3", "size": 34},
-			{"name": "Building 4", "size": 1}
-		 ]
-		},
-		{
-		 "name": "Brisbane",
-		 "children": [
-		{"name": "Building 1", "size": 10},
-			{"name": "Building 2", "size": 5},
-			{"name": "Building 3", "size": 34},
-			{"name": "Building 4", "size": 1}
-		 ]
-		},
-		{
-		 "name": "Canberra",
-		 "children": [
-		{"name": "Building 1", "size": 10},
-			{"name": "Building 2", "size": 5},
-			{"name": "Building 3", "size": 34},
-			{"name": "Building 4", "size": 1}
-		 ]
-		},
-		{
-		 "name": "Bellevue",
-		 "children": [
-		{"name": "Building 1", "size": 10},
-			{"name": "Building 2", "size": 5},
-			{"name": "Building 3", "size": 34},
-			{"name": "Building 4", "size": 1}
-		 ]
-		},
-		{
-		 "name": "Darwin",
-		 "children": [
-			{"name": "Building 1", "size": 10},
-			{"name": "Building 2", "size": 5},
-			{"name": "Building 3", "size": 34},
-			{"name": "Building 4", "size": 1}
-		 ]
-		},
-		{
-		 "name": "Glen Waverley",
-		 "children": [
-			{"name": "Building 1", "size": 10},
-			{"name": "Building 2", "size": 5},
-			{"name": "Building 3", "size": 34},
-			{"name": "Building 4", "size": 1}
-		 ]
-		},
-		{
-		 "name": "Gold Coast",
-		 "children": [
-			{"name": "Building 1", "size": 10},
-			{"name": "Building 2", "size": 5},
-			{"name": "Building 3", "size": 34},
-			{"name": "Building 4", "size": 1}
-		 ]
-		},
-		{
-		 "name": "Melbourne",
-		 "children": [
-			{"name": "Building 1", "size": 10},
-			{"name": "Building 2", "size": 5},
-			{"name": "Building 3", "size": 34},
-			{"name": "Building 4", "size": 1}
-		 ]
+	});*/
+
+	function getUniqueData(jsonData,columnToFilter){
+		var tempCountryArray=[];			
+		for(count = 0; count< jsonData.length; count++){    
+			if(tempCountryArray.indexOf(jsonData[count][columnToFilter]) === -1){
+				tempCountryArray.push(jsonData[count][columnToFilter]);        
+			}        
 		}
-	 ]
-	},
-	{
-	 "name": "Singapore",
-	 "children": [
-			{"name": "Building 1", "size": 10},
-			{"name": "Building 2", "size": 5},
-			{"name": "Building 3", "size": 34},
-			{"name": "Building 4", "size": 1}
-		
-	 ]
+		return tempCountryArray;
 	}
-	
-	
-	
-	
-	
-	
- ]
-};
+	function getUniqueDataforCountryORBuilding(jsonData,countryName,columnToFilter){			
+		var tempdataArray=[];			
+		tempdataArray = jsonData.filter(d => d[columnToFilter] == countryName);		
+		return tempdataArray;
+	}
+	function tooltipdata(d){
+		
+		var totalAffected=0;
+		var totalRecovered=0;
+		switch (d.depth) {
+			case 1:
+				totalAffected = TotalCasesBasedOnCountry(d.data.name,"Affected");
+				totalRecovered = TotalCasesBasedOnCountry(d.data.name,"Recovered");
+			break;
+			case 2:
+				totalAffected = TotalCasesBasedOnState(d.parent.data.name,d.data.name,"Affected");
+				totalRecovered = TotalCasesBasedOnState(d.parent.data.name,d.data.name,"Recovered");
+			break;
+			case 3:
+				totalAffected = TotalCasesBasedOnBuilding(d.parent.parent.data.name,d.parent.data.name,d.data.name,"Affected");
+				totalRecovered = TotalCasesBasedOnBuilding(d.parent.parent.data.name,d.parent.data.name,d.data.name,"Recovered");
+			break;
 
-var margin = {top: 30, right: 120, bottom: 0, left: 120},
-		width = 650 - margin.left - margin.right,
+		}
+		var totalcase =totalAffected+totalRecovered;
+		var temp =d.data.name+"<hr/>Total: "+totalcase+"</br >"+"Affected : "+totalAffected+ "</br> Recovered : "+totalRecovered;
+		return temp
+	}
+	function TotalCasesBasedOnCountry(name,type){		
+		var tempdataArray=[];		
+		var total=0;
+		tempdataArray = rawJsonData.filter(d => d["Country"] == name);		
+		for (c = 0; c < tempdataArray.length; c++) {  //loop through the array
+			total += parseInt(tempdataArray[c][type]);  //Do the math!
+		}
+		return total;
+	}
+	function TotalCasesBasedOnState(Countryname,StateName,type){		
+		var tempdataArray=[];		
+		var total=0;
+		tempdataArray = rawJsonData.filter(d => d["Country"] == Countryname && d["State"] == StateName);		
+		for (s = 0; s < tempdataArray.length; s++) {  //loop through the array
+			total += parseInt(tempdataArray[s][type]);  //Do the math!
+		}
+		return total;
+	}
+	function TotalCasesBasedOnBuilding(Countryname,StateName,buildingName,type){		
+		var tempdataArray=[];		
+		var total=0;
+		tempdataArray = rawJsonData.filter(d => d["Country"] == Countryname && d["State"] == StateName && d["Building"] == buildingName);		
+		for (b = 0; b < tempdataArray.length; b++) {  //loop through the array
+			total += parseInt(tempdataArray[b][type]);  //Do the math!
+		}
+		return total;
+	}
+	function formatJson(jsondataToFormat){		
+		var uniqueCountries = [];
+		var mainObject = {};
+		mainObject.name="flare";
+		mainObject.children=[];
+		var flare={};
+		uniqueCountries = getUniqueData(jsondataToFormat,"Country");
+
+		for(uc = 0; uc< uniqueCountries.length; uc++){  
+			var CountryObject = {};	
+			CountryObject.name=uniqueCountries[uc];	
+			CountryObject.children=[];
+
+			//Getting data for the processing country
+			var uniqueDataForProcessedCountry = getUniqueDataforCountryORBuilding(jsondataToFormat,uniqueCountries[uc],"Country");
+			//Getting unique State for the processing country
+			var uniqueStateForProcessedCountry = getUniqueData(uniqueDataForProcessedCountry,"State");
+
+			for(j=0;j<uniqueStateForProcessedCountry.length;j++){
+				var getBuildingDetailsonProcessedState = getUniqueDataforCountryORBuilding(uniqueDataForProcessedCountry,uniqueStateForProcessedCountry[j],"State");
+				var state={};
+				state.name = uniqueStateForProcessedCountry[j];
+				state.children=[];
+				for(k=0;k<getBuildingDetailsonProcessedState.length;k++){
+					item = {}
+					item ["name"] = getBuildingDetailsonProcessedState[k]["Building"];
+					item ["size"] = parseInt(getBuildingDetailsonProcessedState[k]["Affected"])+ parseInt(getBuildingDetailsonProcessedState[k]["Recovered"]);
+					state.children.push(item);
+				}
+				CountryObject.children.push(state);
+			}
+			mainObject.children.push(CountryObject)	;
+		}		
+		CreateSVG(mainObject);
+	}
+	function CreateSVG(mainObject){
+		flare = mainObject;
+		margin = {top: 30, right: 120, bottom: 0, left: 120},
+		width = 750 - margin.left - margin.right,
 		height = 300 - margin.top - margin.bottom;
 
-var x = d3.scaleLinear()
+		x = d3.scaleLinear()
 		.range([0, width]);
 
-var barHeight = 20;
+		barHeight = 20;
 
-var color = d3.scaleOrdinal()
+		color = d3.scaleOrdinal()
 		.range(["steelblue", "#ccc"]);
 
-var duration = 750,
+		duration = 750,
 		delay = 25;
 
-var xAxis = d3.axisTop(x);
+		xAxis = d3.axisTop(x);
 
-var svg = d3.select(".chart").append("svg")
+		svg = d3.select(".chart").append("svg")
 		.attr("width", width + margin.left + margin.right)
 		.attr("height", height + margin.top + margin.bottom)
-	.append("g")
+		.append("g")
 		.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-svg.append("rect")
+		svg.append("rect")
 		.attr("class", "background")
 		.attr("width", width)
 		.attr("height", height)
 		.on("click", up);
 
-svg.append("g")
+		svg.append("g")
 		.attr("class", "x axis");
 
-svg.append("g")
+		svg.append("g")
 		.attr("class", "y axis")
-	.append("line")
+		.append("line")
 		.attr("y1", "100%");
+		tooltip = d3.select("body").append("div").attr("class", "toolTip");
+		root = d3.hierarchy(flare)
+		.sum(function(d) { return d.size; });
+		x.domain([0, root.value]).nice();
+		down(root, 0);
+	}
+	
+	function down(d, i) {
+		if (!d.children || this.__transition__) return;
+		var end = duration + d.children.length * delay;
 
-var root = d3.hierarchy(flare)
-	.sum(function(d) { return d.size; });
-x.domain([0, root.value]).nice();
-down(root, 0);
+		// Mark any currently-displayed bars as exiting.
+		var exit = svg.selectAll(".enter")
+				.attr("class", "exit");
 
-function down(d, i) {
-	if (!d.children || this.__transition__) return;
-	var end = duration + d.children.length * delay;
+		// Entering nodes immediately obscure the clicked-on bar, so hide it.
+		exit.selectAll("rect").filter(function(p) { return p === d; })
+				.style("fill-opacity", 1e-6);
 
-	// Mark any currently-displayed bars as exiting.
-	var exit = svg.selectAll(".enter")
-			.attr("class", "exit");
+		// Enter the new bars for the clicked-on data.
+		// Per above, entering bars are immediately visible.
+		var enter = bar(d)
+				.attr("transform", stack(i))
+				.style("opacity", 1);
 
-	// Entering nodes immediately obscure the clicked-on bar, so hide it.
-	exit.selectAll("rect").filter(function(p) { return p === d; })
-			.style("fill-opacity", 1e-6);
+		// Have the text fade-in, even though the bars are visible.
+		// Color the bars as parents; they will fade to children if appropriate.
+		enter.select("text").style("fill-opacity", 1e-6);
+		enter.select("rect").style("fill", color(true));
 
-	// Enter the new bars for the clicked-on data.
-	// Per above, entering bars are immediately visible.
-	var enter = bar(d)
-			.attr("transform", stack(i))
-			.style("opacity", 1);
+		// Update the x-scale domain.
+		x.domain([0, d3.max(d.children, function(d) { return d.value; })]).nice();
 
-	// Have the text fade-in, even though the bars are visible.
-	// Color the bars as parents; they will fade to children if appropriate.
-	enter.select("text").style("fill-opacity", 1e-6);
-	enter.select("rect").style("fill", color(true));
+		// Update the x-axis.
+		svg.selectAll(".x.axis").transition()
+				.duration(duration)
+				.call(xAxis);
 
-	// Update the x-scale domain.
-	x.domain([0, d3.max(d.children, function(d) { return d.value; })]).nice();
+		// Transition entering bars to their new position.
+		var enterTransition = enter.transition()
+				.duration(duration)
+				.delay(function(d, i) { return i * delay; })
+				.attr("transform", function(d, i) { return "translate(0," + barHeight * i * 1.2 + ")"; });
 
-	// Update the x-axis.
-	svg.selectAll(".x.axis").transition()
-			.duration(duration)
-			.call(xAxis);
+		// Transition entering text.
+		enterTransition.select("text")
+				.style("fill-opacity", 1);
 
-	// Transition entering bars to their new position.
-	var enterTransition = enter.transition()
-			.duration(duration)
-			.delay(function(d, i) { return i * delay; })
-			.attr("transform", function(d, i) { return "translate(0," + barHeight * i * 1.2 + ")"; });
+		// Transition entering rects to the new x-scale.
+		enterTransition.select("rect")
+				.attr("width", function(d) { return x(d.value); })
+				.style("fill", function(d) { return color(!!d.children); });
 
-	// Transition entering text.
-	enterTransition.select("text")
-			.style("fill-opacity", 1);
+		// Transition exiting bars to fade out.
+		var exitTransition = exit.transition()
+				.duration(duration)
+				.style("opacity", 1e-6)
+				.remove();
 
-	// Transition entering rects to the new x-scale.
-	enterTransition.select("rect")
-			.attr("width", function(d) { return x(d.value); })
-			.style("fill", function(d) { return color(!!d.children); });
+		// Transition exiting bars to the new x-scale.
+		exitTransition.selectAll("rect")
+				.attr("width", function(d) { return x(d.value); });
 
-	// Transition exiting bars to fade out.
-	var exitTransition = exit.transition()
-			.duration(duration)
-			.style("opacity", 1e-6)
-			.remove();
+		// Rebind the current node to the background.
+		svg.select(".background")
+				.datum(d)
+			.transition()
+				.duration(end);
 
-	// Transition exiting bars to the new x-scale.
-	exitTransition.selectAll("rect")
-			.attr("width", function(d) { return x(d.value); });
+		d.index = i;
+	}
 
-	// Rebind the current node to the background.
-	svg.select(".background")
-			.datum(d)
-		.transition()
-			.duration(end);
+	function up(d) {
+		if (!d.parent || this.__transition__) return;
+		var end = duration + d.children.length * delay;
 
-	d.index = i;
-}
+		// Mark any currently-displayed bars as exiting.
+		var exit = svg.selectAll(".enter")
+				.attr("class", "exit");
 
-function up(d) {
-	if (!d.parent || this.__transition__) return;
-	var end = duration + d.children.length * delay;
+		// Enter the new bars for the clicked-on data's parent.
+		var enter = bar(d.parent)
+				.attr("transform", function(d, i) { return "translate(0," + barHeight * i * 1.2 + ")"; })
+				.style("opacity", 1e-6);
 
-	// Mark any currently-displayed bars as exiting.
-	var exit = svg.selectAll(".enter")
-			.attr("class", "exit");
+		// Color the bars as appropriate.
+		// Exiting nodes will obscure the parent bar, so hide it.
+		enter.select("rect")
+				.style("fill", function(d) { return color(!!d.children); })
+			.filter(function(p) { return p === d; })
+				.style("fill-opacity", 1e-6);
 
-	// Enter the new bars for the clicked-on data's parent.
-	var enter = bar(d.parent)
-			.attr("transform", function(d, i) { return "translate(0," + barHeight * i * 1.2 + ")"; })
-			.style("opacity", 1e-6);
+		// Update the x-scale domain.
+		x.domain([0, d3.max(d.parent.children, function(d) { return d.value; })]).nice();
 
-	// Color the bars as appropriate.
-	// Exiting nodes will obscure the parent bar, so hide it.
-	enter.select("rect")
-			.style("fill", function(d) { return color(!!d.children); })
-		.filter(function(p) { return p === d; })
-			.style("fill-opacity", 1e-6);
+		// Update the x-axis.
+		svg.selectAll(".x.axis").transition()
+				.duration(duration)
+				.call(xAxis);
 
-	// Update the x-scale domain.
-	x.domain([0, d3.max(d.parent.children, function(d) { return d.value; })]).nice();
+		// Transition entering bars to fade in over the full duration.
+		var enterTransition = enter.transition()
+				.duration(end)
+				.style("opacity", 1);
 
-	// Update the x-axis.
-	svg.selectAll(".x.axis").transition()
-			.duration(duration)
-			.call(xAxis);
+		// Transition entering rects to the new x-scale.
+		// When the entering parent rect is done, make it visible!
+		enterTransition.select("rect")
+				.attr("width", function(d) { return x(d.value); })
+				.on("end", function(p) { if (p === d) d3.select(this).style("fill-opacity", null); });
 
-	// Transition entering bars to fade in over the full duration.
-	var enterTransition = enter.transition()
-			.duration(end)
-			.style("opacity", 1);
+		// Transition exiting bars to the parent's position.
+		var exitTransition = exit.selectAll("g").transition()
+				.duration(duration)
+				.delay(function(d, i) { return i * delay; })
+				.attr("transform", stack(d.index));
 
-	// Transition entering rects to the new x-scale.
-	// When the entering parent rect is done, make it visible!
-	enterTransition.select("rect")
-			.attr("width", function(d) { return x(d.value); })
-			.on("end", function(p) { if (p === d) d3.select(this).style("fill-opacity", null); });
+		// Transition exiting text to fade out.
+		exitTransition.select("text")
+				.style("fill-opacity", 1e-6);
 
-	// Transition exiting bars to the parent's position.
-	var exitTransition = exit.selectAll("g").transition()
-			.duration(duration)
-			.delay(function(d, i) { return i * delay; })
-			.attr("transform", stack(d.index));
+		// Transition exiting rects to the new scale and fade to parent color.
+		exitTransition.select("rect")
+				.attr("width", function(d) { return x(d.value); })
+				.style("fill", color(true));
 
-	// Transition exiting text to fade out.
-	exitTransition.select("text")
-			.style("fill-opacity", 1e-6);
+		// Remove exiting nodes when the last child has finished transitioning.
+		exit.transition()
+				.duration(end)
+				.remove();
 
-	// Transition exiting rects to the new scale and fade to parent color.
-	exitTransition.select("rect")
-			.attr("width", function(d) { return x(d.value); })
-			.style("fill", color(true));
+		// Rebind the current parent to the background.
+		svg.select(".background")
+				.datum(d.parent)
+			.transition()
+				.duration(end);
+	}
 
-	// Remove exiting nodes when the last child has finished transitioning.
-	exit.transition()
-			.duration(end)
-			.remove();
+	// Creates a set of bars for the given data node, at the specified index.
+	function bar(d) {
+		var bar = svg.insert("g", ".y.axis")
+				.attr("class", "enter")
+				.attr("transform", "translate(0,5)")
+			.selectAll("g")
+				.data(d.children)
+			.enter().append("g")
+				.style("cursor", function(d) { return !d.children ? null : "pointer"; })
+				.on("click", down);
+				
+		bar.append("text")
+      .attr("class", "moreText")
+      .attr("x", function(d) { return x(d.value) + 20; })
+      .attr("y", barHeight / 2)
+      .attr("dy", ".35em")
+      .attr("fill", "none")
+      .text(function(d) { return d.value; })
+	  
+		bar.append("text")
+				.attr("x", -6)
+				.attr("y", barHeight / 2)
+				.attr("dy", ".35em")
+				.style("text-anchor", "end")
+				.text(function(d) { return d.data.name; });
 
-	// Rebind the current parent to the background.
-	svg.select(".background")
-			.datum(d.parent)
-		.transition()
-			.duration(end);
-}
+		bar.append("rect")
+				.attr("width", function(d) { return x(d.value); })
+				.attr("height", barHeight);
 
-// Creates a set of bars for the given data node, at the specified index.
-function bar(d) {
-	var bar = svg.insert("g", ".y.axis")
-			.attr("class", "enter")
-			.attr("transform", "translate(0,5)")
-		.selectAll("g")
-			.data(d.children)
-		.enter().append("g")
-			.style("cursor", function(d) { return !d.children ? null : "pointer"; })
-			.on("click", down);
+		bar.on("mouseover", function(d) {
+		debugger;
+			d3.select(this).select(".moreText").attr("fill", "#fff")
+			.attr("x", function(d) { return x(d.value) + 1; })
+			  tooltip
+              .style("left", d3.event.pageX - 150 + "px")
+              .style("top", d3.event.pageY - 70 + "px")
+              .style("display", "inline-block")
+              .html((tooltipdata(d)));
+		  })
+		  .on("mouseout", function(d) {
+			d3.select(this).select(".moreText").attr("fill", "none")
+			 tooltip.style("display", "none");
+		  })
+			return bar;
+		}
 
-	bar.append("text")
-			.attr("x", -6)
-			.attr("y", barHeight / 2)
-			.attr("dy", ".35em")
-			.style("text-anchor", "end")
-			.text(function(d) { return d.data.name; });
-
-	bar.append("rect")
-			.attr("width", function(d) { return x(d.value); })
-			.attr("height", barHeight);
-
-	return bar;
-}
-
-// A stateful closure for stacking bars horizontally.
-function stack(i) {
-	var x0 = 0;
-	return function(d) {
-		var tx = "translate(" + x0 + "," + barHeight * i * 1.2 + ")";
-		x0 += x(d.value);
-		return tx;
-	};
-}
-
+	// A stateful closure for stacking bars horizontally.
+	function stack(i) {
+		var x0 = 0;
+		return function(d) {
+			var tx = "translate(" + x0 + "," + barHeight * i * 1.2 + ")";
+			x0 += x(d.value);
+			return tx;
+		};
+	}
+		
+});
 </script>
